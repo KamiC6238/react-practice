@@ -1,4 +1,5 @@
 import React, { Component, Fragment } from 'react'
+import ListItem from './Children/index'
 
 class TodoList extends Component {
   constructor (props) {
@@ -25,20 +26,11 @@ class TodoList extends Component {
           />
           <button onClick={this.handleSubmit}>提交</button>
         </div>
-        <ul>
-          {
-            this.state.list.map((item, index) => {
-              return (
-                <li
-                  onClick={() => this.handleDelete(index)}
-                  key={item+index}
-                  // 将带标签的转为html格式
-                  dangerouslySetInnerHTML={{__html: item}}
-                />
-              )
-            })
-          }
-        </ul>
+        <ListItem
+            inputValue={this.state.inputValue}
+            handleDelete={this.handleDelete}
+            list={this.state.list}
+          />
       </Fragment>
     )
   }
