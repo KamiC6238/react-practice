@@ -54,6 +54,7 @@ const getSearchArea = props => {
 }
 
 const Header = props => {
+  const { focused, handleInputFocus, handleInputBlur, list } = props
   return (
     <HeaderWrapper>
       <Logo />
@@ -66,13 +67,13 @@ const Header = props => {
         </NavItem>
         <SearchWrapper>
           <NavSearch
-            onFocus={props.handleInputFocus}
-            onBlur={props.handleInputBlur}
-            className={props.focused ? 'focused' : ''}
+            onFocus={() => handleInputFocus(list)}
+            onBlur={handleInputBlur}
+            className={focused ? 'focused' : ''}
           />
           <i
             className={
-              props.focused ?
+              focused ?
               'focused iconfont' :
               'iconfont'
             }
@@ -105,8 +106,9 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
   return {
-    handleInputFocus () {
-      dispatch(getList())
+    handleInputFocus (list) {
+      // 当list已经有数据时，避免发送无意义的请求
+      (list.size === 0) && dispatch(getList())
       dispatch(actionSearchFocus())
     },
     handleInputBlur () {
