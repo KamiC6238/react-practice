@@ -8,12 +8,50 @@ import {
   NavSearch,
   Addition,
   Button,
-  SearchWrapper
+  SearchWrapper,
+  SearchInfo,
+  SearchInfoTitle,
+  SearchInfoSwitch,
+  SearchInfoItem
 } from './style.js'
 import {
   actionSearchFocus,
-  actionSearchBlur
-} from '../.././store/actionCreators'
+  actionSearchBlur,
+  actionMouseEnter,
+  actionMouseLeave,
+  actionPageChange,
+  getList
+} from './store'
+
+const getSearchArea = props => {
+  const { focused, list, page, totalPage, mouseIn, handleMouseEnter, handleMouseLeave, handlePageChange } = props
+  const pageList = []
+  const _list = list.toJS()
+  // 获取到数据的时候才执行下面代码，否则key会变成undefined，导致报错
+  if (_list.length) {
+    for (let i = (page-1) * 10; i < page * 10; i++) {
+      pageList.push(
+        <SearchInfoItem key={_list[i]}>{_list[i]}</SearchInfoItem>
+      )
+    }
+  }
+  // 选项框的显示依赖于一下两个来显示
+  if (focused || mouseIn) {
+    return (
+      <SearchInfo
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
+        <SearchInfoTitle>
+          热门搜索
+          <SearchInfoSwitch onClick={() => handlePageChange(page, totalPage)}>换一换</SearchInfoSwitch>
+        </SearchInfoTitle>
+        {pageList}
+      </SearchInfo>
+    )
+  }
+  return null
+}
 
 const Header = props => {
   return (
@@ -39,6 +77,7 @@ const Header = props => {
               'iconfont'
             }
           >&#xe62b;</i>
+          { getSearchArea(props) }
         </SearchWrapper>
       </Nav>
       <Addition>
@@ -53,22 +92,44 @@ const Header = props => {
 }
 
 const mapStateToProps = state => {
+  // 使用了immuatable之后只能使用get来获取state里的数据
+  // 两种写法
   return {
-    focused: state.header.focused
+    focused: state.get('header').get('focused'),
+    list: state.get('header').get('list'),
+    page: state.get('header').get('page'),
+    totalPage: state.getIn(['header', 'totalPage']),
+    mouseIn: state.getIn(['header', 'mouseIn'])
   }
 }
 
 const mapDispatchToProps = dispatch => {
   return {
     handleInputFocus () {
-      const action = actionSearchFocus()
-      dispatch(action)
+      dispatch(getList())
+      dispatch(actionSearchFocus())
     },
     handleInputBlur () {
-      const action = actionSearchBlur()
-      dispatch(action)
+      dispatch(actionSearchBlur())
+    },
+    handleMouseEnter () {
+      dispatch(actionMouseEnter())
+    },
+    handleMouseLeave () {
+      dispatch(actionMouseLeave())
+    },
+    handlePageChange (page, totalPage) {
+      if (page < totalPage) {
+        dispatch(actionPageChange(page + 1))
+      } else {
+        dispatch(actionPageChange(1))
+      }
     }
   }
 }
 
+/*
+  connect会返回一个容器组件，这个组件包含两部分，一部分是UI组件，也就是Header，一部分是逻辑处理，也就是
+  mapStateToProps和mapDispatchToProps
+*/
 export default connect(mapStateToProps, mapDispatchToProps)(Header)
